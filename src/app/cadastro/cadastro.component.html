@@ -56,10 +56,8 @@
             <div class="campo campo-largo">
               <label for="nome">Nome completo <span>*</span></label>
               <input id="nome" type="text" formControlName="nome" autocomplete="name" placeholder="Como está no seu documento" maxlength="120" [attr.aria-invalid]="form.controls.nome.touched && form.controls.nome.invalid" />
-              @if (form.controls.nome.touched && form.controls.nome.hasError('required')) {
+              @if (form.controls.nome.touched && form.controls.nome.invalid) {
                 <small class="campo-erro">Informe seu nome completo.</small>
-              } @else if (form.controls.nome.touched && form.controls.nome.hasError('minlength')) {
-                <small class="campo-erro">Digite ao menos 3 caracteres.</small>
               }
             </div>
 
@@ -75,7 +73,7 @@
                 <label for="telefone">Celular <span>*</span></label>
                 <input id="telefone" type="tel" formControlName="telefone" (input)="formatarTelefone($event)" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" maxlength="16" [attr.aria-invalid]="form.controls.telefone.touched && form.controls.telefone.invalid" />
                 @if (form.controls.telefone.touched && form.controls.telefone.invalid) {
-                  <small class="campo-erro">Informe um celular com DDD.</small>
+                  <small class="campo-erro">Informe um celular com DDD e 10 ou 11 dígitos.</small>
                 }
               </div>
             </div>

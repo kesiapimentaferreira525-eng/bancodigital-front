@@ -25,6 +25,11 @@ function cpfValido(control: AbstractControl): ValidationErrors | null {
     : { cpfInvalido: true };
 }
 
+function telefoneValido(control: AbstractControl): ValidationErrors | null {
+  const telefone = String(control.value ?? '').replace(/\D/g, '');
+  return /^\d{10,11}$/.test(telefone) ? null : { telefoneInvalido: true };
+}
+
 @Component({
   selector: 'app-cadastro',
   standalone: true,
@@ -43,11 +48,11 @@ export class CadastroComponent {
   readonly mostrarSenha = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
+    nome: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(120)]],
     cpf: ['', [Validators.required, cpfValido]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
-    telefone: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(16)]],
-    senha: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
+    telefone: ['', [Validators.required, telefoneValido]],
+    senha: ['', [Validators.required, Validators.pattern(/\S/), Validators.minLength(8), Validators.maxLength(100)]],
     agencia: ['', [Validators.required, Validators.pattern(/^\d{1,4}$/)]],
     tipoConta: this.fb.nonNullable.control<'corrente' | 'poupanca'>('corrente'),
     chavePix: ['', [Validators.maxLength(120)]],
