@@ -1,0 +1,151 @@
+<div class="pagina">
+  <header class="barra-superior">
+    <a class="marca" href="/" aria-label="Banco Digital, página inicial">
+      <span class="marca-icone" aria-hidden="true">B</span>
+      <span>Banco<span class="marca-destaque">Digital</span></span>
+    </a>
+    <div class="ambiente"><span class="status-ponto"></span> Abertura de conta</div>
+  </header>
+
+  <main class="conteudo">
+    <section class="apresentacao" aria-labelledby="titulo-pagina">
+      <div class="etiqueta"><span class="etiqueta-ponto"></span> SIMPLES, SEGURO E 100% DIGITAL</div>
+      <h1 id="titulo-pagina">Sua vida financeira começa <span>aqui.</span></h1>
+      <p>Preencha seus dados para criar seu acesso e abrir sua conta. É rápido e sem burocracia.</p>
+
+      <ul class="beneficios">
+        <li><span class="beneficio-icone" aria-hidden="true">✓</span><span><strong>Conta feita para você</strong><small>Escolha entre conta corrente ou poupança.</small></span></li>
+        <li><span class="beneficio-icone" aria-hidden="true">✓</span><span><strong>Seus dados protegidos</strong><small>Usamos suas informações apenas para o cadastro.</small></span></li>
+        <li><span class="beneficio-icone" aria-hidden="true">✓</span><span><strong>Pronto para usar</strong><small>Agência e número da conta após a confirmação.</small></span></li>
+      </ul>
+
+      <div class="nota-seguranca"><span aria-hidden="true">◈</span> Seus dados são transmitidos com segurança.</div>
+    </section>
+
+    <section class="painel-cadastro" aria-labelledby="titulo-formulario">
+      @if (cadastroConcluido(); as cadastro) {
+        <div class="sucesso" role="status" aria-live="polite">
+          <div class="sucesso-icone" aria-hidden="true">✓</div>
+          <p class="sobretitulo">CADASTRO CONCLUÍDO</p>
+          <h2 id="titulo-formulario">Bem-vindo(a), {{ cadastro.usuario.nome }}!</h2>
+          <p class="sucesso-descricao">Sua conta foi criada. Guarde o ID e o número da conta para futuras operações.</p>
+
+          <dl class="dados-conta">
+            <div><dt>ID do usuário</dt><dd>{{ cadastro.usuario.id }}</dd></div>
+            <div><dt>ID da conta</dt><dd>{{ cadastro.conta.id }}</dd></div>
+            <div><dt>Agência</dt><dd>{{ cadastro.conta.agencia }}</dd></div>
+            <div><dt>Número da conta</dt><dd>{{ cadastro.conta.numero }}</dd></div>
+            <div><dt>Tipo de conta</dt><dd>{{ cadastro.conta.tipo === 'corrente' ? 'Corrente' : 'Poupança' }}</dd></div>
+          </dl>
+
+          <button class="botao-primario" type="button" (click)="novoCadastro()">Cadastrar outra pessoa</button>
+        </div>
+      } @else {
+        <div class="cabecalho-formulario">
+          <div>
+            <p class="sobretitulo">VAMOS COMEÇAR</p>
+            <h2 id="titulo-formulario">Crie sua conta</h2>
+            <p class="instrucao">Os campos com <span aria-hidden="true">*</span> são obrigatórios.</p>
+          </div>
+          <span class="passo">01 <span>/ 01</span></span>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="cadastrar()" novalidate>
+          <fieldset>
+            <legend><span class="numero-secao">1</span> Seus dados</legend>
+            <div class="campo campo-largo">
+              <label for="nome">Nome completo <span>*</span></label>
+              <input id="nome" type="text" formControlName="nome" autocomplete="name" placeholder="Como está no seu documento" maxlength="120" [attr.aria-invalid]="form.controls.nome.touched && form.controls.nome.invalid" />
+              @if (form.controls.nome.touched && form.controls.nome.hasError('required')) {
+                <small class="campo-erro">Informe seu nome completo.</small>
+              } @else if (form.controls.nome.touched && form.controls.nome.hasError('minlength')) {
+                <small class="campo-erro">Digite ao menos 3 caracteres.</small>
+              }
+            </div>
+
+            <div class="grade-campos">
+              <div class="campo">
+                <label for="cpf">CPF <span>*</span></label>
+                <input id="cpf" type="text" formControlName="cpf" (input)="formatarCpf($event)" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" [attr.aria-invalid]="form.controls.cpf.touched && form.controls.cpf.invalid" />
+                @if (form.controls.cpf.touched && form.controls.cpf.invalid) {
+                  <small class="campo-erro">Informe um CPF válido.</small>
+                }
+              </div>
+              <div class="campo">
+                <label for="telefone">Celular <span>*</span></label>
+                <input id="telefone" type="tel" formControlName="telefone" (input)="formatarTelefone($event)" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" maxlength="16" [attr.aria-invalid]="form.controls.telefone.touched && form.controls.telefone.invalid" />
+                @if (form.controls.telefone.touched && form.controls.telefone.invalid) {
+                  <small class="campo-erro">Informe um celular com DDD.</small>
+                }
+              </div>
+            </div>
+
+            <div class="campo campo-largo">
+              <label for="email">E-mail <span>*</span></label>
+              <input id="email" type="email" formControlName="email" autocomplete="email" placeholder="voce@email.com" maxlength="150" [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
+              @if (form.controls.email.touched && form.controls.email.invalid) {
+                <small class="campo-erro">Informe um e-mail válido.</small>
+              }
+            </div>
+
+            <div class="campo campo-largo">
+              <label for="senha">Crie uma senha <span>*</span></label>
+              <div class="campo-senha">
+                <input id="senha" [type]="mostrarSenha() ? 'text' : 'password'" formControlName="senha" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" maxlength="100" [attr.aria-invalid]="form.controls.senha.touched && form.controls.senha.invalid" aria-describedby="ajuda-senha" />
+                <button class="botao-mostrar-senha" type="button" (click)="alternarVisibilidadeSenha()" [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Mostrar senha'">
+                  {{ mostrarSenha() ? 'Ocultar' : 'Mostrar' }}
+                </button>
+              </div>
+              <small id="ajuda-senha" class="ajuda-campo">Use pelo menos 8 caracteres. Sua senha será armazenada protegida.</small>
+              @if (form.controls.senha.touched && form.controls.senha.invalid) {
+                <small class="campo-erro">A senha deve ter entre 8 e 100 caracteres.</small>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset class="secao-conta">
+            <legend><span class="numero-secao">2</span> Sua conta</legend>
+            <div class="grade-campos">
+              <div class="campo">
+                <label for="agencia">Agência <span>*</span></label>
+                <input id="agencia" type="text" formControlName="agencia" inputmode="numeric" autocomplete="off" placeholder="Ex.: 0001" maxlength="4" [attr.aria-invalid]="form.controls.agencia.touched && form.controls.agencia.invalid" />
+                @if (form.controls.agencia.touched && form.controls.agencia.invalid) {
+                  <small class="campo-erro">Informe uma agência com até 4 dígitos.</small>
+                }
+              </div>
+              <div class="campo">
+                <label for="tipoConta">Tipo de conta <span>*</span></label>
+                <select id="tipoConta" formControlName="tipoConta">
+                  <option value="corrente">Conta corrente</option>
+                  <option value="poupanca">Conta poupança</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="campo campo-largo">
+              <label for="chavePix">Chave Pix <span class="opcional">opcional</span></label>
+              <input id="chavePix" type="text" formControlName="chavePix" autocomplete="off" placeholder="CPF, e-mail, celular ou chave aleatória" maxlength="120" />
+              <small class="ajuda-campo">Você também poderá cadastrar uma chave depois.</small>
+            </div>
+            <p class="aviso-conta"><span aria-hidden="true">i</span> O número da conta e seu ID de usuário serão gerados após a confirmação.</p>
+          </fieldset>
+
+          @if (erro()) {
+            <div class="alerta" role="alert" aria-live="assertive">{{ erro() }}</div>
+          }
+
+          <button class="botao-primario" type="submit" [disabled]="enviando()">
+            @if (enviando()) {
+              <span class="spinner" aria-hidden="true"></span> Criando sua conta...
+            } @else {
+              Criar minha conta <span aria-hidden="true">→</span>
+            }
+          </button>
+          <p class="rodape-formulario">Ao continuar, você confirma que os dados informados são verdadeiros.</p>
+        </form>
+      }
+    </section>
+  </main>
+
+  <footer class="rodape-pagina">© {{ 2026 }} Banco Digital <span>·</span> Sua conta, do seu jeito.</footer>
+</div>

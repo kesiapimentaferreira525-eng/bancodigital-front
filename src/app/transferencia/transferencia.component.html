@@ -1,0 +1,263 @@
+<div class="pagina">
+  <header class="topbar">
+    <a class="marca" href="/" aria-label="Banco Digital - início">
+      <span class="marca-simbolo" aria-hidden="true">B</span>
+      <span>Banco <strong>Digital</strong></span>
+    </a>
+    <span class="ambiente"><span aria-hidden="true"></span> Transferência segura</span>
+    <div class="topbar-acoes">
+      @if (!contaEncerrada()) {
+        <button class="botao-encerrar" type="button" (click)="solicitarEncerramento()">Encerrar conta</button>
+      }
+      <button class="botao-sair" type="button" (click)="sairDaConta()">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="introducao">
+      <p class="sobretitulo">VISÃO GERAL DA CONTA</p>
+      <h1>Olá, <span>{{ cadastro.usuario.nome }}.</span></h1>
+      <p class="descricao">
+        Acompanhe seus dados e acesse os serviços da sua conta de demonstração.
+      </p>
+    </section>
+
+    <aside class="aviso-demonstracao" role="note">
+      <span class="aviso-icone" aria-hidden="true">i</span>
+      <span><strong>Ambiente de demonstração.</strong> Saldos, limites, cartão e chave Pix são fictícios e não representam dinheiro ou serviços financeiros reais.</span>
+    </aside>
+
+    <section class="conta-confirmada" aria-label="Dados da conta criada">
+      <div>
+        <p class="conta-confirmada-etiqueta">{{ cadastro.conta.tipo === 'corrente' ? 'CONTA CORRENTE' : 'CONTA POUPANÇA' }} · DEMONSTRAÇÃO</p>
+        <strong>{{ cadastro.usuario.nome }}</strong>
+      </div>
+      <dl>
+        <div><dt>ID da conta</dt><dd>{{ cadastro.conta.id }}</dd></div>
+        <div><dt>Agência</dt><dd>{{ cadastro.conta.agencia }}</dd></div>
+        <div><dt>Número da conta</dt><dd>{{ cadastro.conta.numero }}</dd></div>
+      </dl>
+    </section>
+
+    @if (confirmarEncerramento()) {
+      <section class="confirmacao-encerramento" role="alertdialog" aria-labelledby="titulo-encerramento" aria-describedby="descricao-encerramento">
+        <div>
+          <h2 id="titulo-encerramento">Encerrar esta conta?</h2>
+          <p id="descricao-encerramento">A conta será desativada e não poderá fazer novas operações. O registro e o histórico de transações serão mantidos para auditoria.</p>
+        </div>
+        <div class="campo campo-senha-encerramento">
+          <label for="senha-encerramento">Confirme sua senha</label>
+          <input id="senha-encerramento" type="password" autocomplete="current-password" [formControl]="senhaEncerramento" />
+          @if (senhaEncerramento.touched && senhaEncerramento.invalid) {
+            <small class="erro-campo">Informe sua senha para confirmar.</small>
+          }
+        </div>
+        @if (erroEncerramento()) {
+          <div class="alerta" role="alert">{{ erroEncerramento() }}</div>
+        }
+        <div class="acoes-encerramento">
+          <button class="botao-manter" type="button" (click)="cancelarEncerramento()" [disabled]="encerrando()">Manter conta</button>
+          <button class="botao-confirmar-encerramento" type="button" (click)="encerrarConta()" [disabled]="encerrando() || senhaEncerramento.invalid">
+            {{ encerrando() ? 'Encerrando...' : 'Confirmar encerramento' }}
+          </button>
+        </div>
+      </section>
+    }
+
+    @if (contaEncerrada()) {
+      <section class="conta-encerrada" role="status" aria-live="polite">
+        <span class="encerrada-icone" aria-hidden="true">✓</span>
+        <div>
+          <h2>Conta encerrada</h2>
+          <p>A conta foi desativada. Os dados e o histórico permanecem salvos; novas transferências não são permitidas.</p>
+        </div>
+      </section>
+    } @else {
+    <section class="painel-saldo" aria-label="Saldo de demonstração">
+      <div>
+        <p class="rotulo-saldo">SALDO EM CONTA <span>FICTÍCIO</span></p>
+        <strong>{{ saldoDisponivel() | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+        <small>Valor de teste salvo na base de demonstração</small>
+      </div>
+      <div class="saldo-simbolo" aria-hidden="true">R$</div>
+    </section>
+
+    <section class="servicos-grid" aria-label="Serviços da conta">
+      <article class="cartao servico pix">
+        <div class="servico-cabecalho">
+          <span class="servico-icone" aria-hidden="true">P</span>
+          <span class="etiqueta-demo">DEMO</span>
+        </div>
+        <h2>Pix</h2>
+        <p>Chave Pix fictícia</p>
+        <strong class="valor-chave">{{ cadastro.demonstracao.chavePix }}</strong>
+        <small>Não recebe nem envia Pix real.</small>
+      </article>
+
+      <article class="cartao servico cartao-credito">
+        <div class="servico-cabecalho">
+          <span class="servico-icone" aria-hidden="true">▰</span>
+          <span class="etiqueta-demo">DEMO</span>
+        </div>
+        <h2>Cartão de crédito</h2>
+        <p>Cartão demonstrativo · final {{ cadastro.demonstracao.cartaoFinal }}</p>
+        <div class="valores-cartao">
+          <div><small>Limite fictício</small><strong>{{ cadastro.demonstracao.limiteCredito | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></div>
+          <div><small>Fatura atual</small><strong>{{ cadastro.demonstracao.faturaAtual | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong></div>
+        </div>
+      </article>
+
+      <article class="cartao servico limite">
+        <div class="servico-cabecalho">
+          <span class="servico-icone" aria-hidden="true">↗</span>
+          <span class="etiqueta-demo">DEMO</span>
+        </div>
+        <h2>Limite da conta</h2>
+        <p>Limite fictício de demonstração</p>
+        <strong class="valor-servico">{{ cadastro.conta.limiteConta | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+        <small>Não representa crédito real ou saldo disponível.</small>
+      </article>
+
+      <article class="cartao servico transferir">
+        <div class="servico-cabecalho">
+          <span class="servico-icone" aria-hidden="true">⇄</span>
+          <span class="etiqueta-demo">DEMO</span>
+        </div>
+        <h2>Transferência</h2>
+        <p>Faça uma transferência entre contas cadastradas no ambiente de demonstração.</p>
+        <a href="#formulario-transferencia">Acessar transferência <span aria-hidden="true">→</span></a>
+      </article>
+    </section>
+
+    <div class="conteudo">
+      <section id="formulario-transferencia" class="cartao formulario-cartao" aria-labelledby="titulo-formulario">
+        <div class="cabecalho-cartao">
+          <div class="icone-cartao" aria-hidden="true">↗</div>
+          <div>
+            <h2 id="titulo-formulario">Nova transferência</h2>
+            <p>Confira a conta de origem e informe o destino</p>
+          </div>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="confirmar()" novalidate>
+          <div class="campo">
+            <label for="origem">ID da conta de origem</label>
+            <input
+              id="origem"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              autocomplete="off"
+              formControlName="contaOrigemId"
+              placeholder="Ex.: 1"
+              [attr.aria-invalid]="form.controls.contaOrigemId.touched && form.controls.contaOrigemId.invalid"
+              aria-describedby="ajuda-origem erro-origem"
+            />
+            <small id="ajuda-origem" class="ajuda-campo">Esta é a conta criada agora e não pode ser alterada.</small>
+            @if (form.controls.contaOrigemId.touched && form.controls.contaOrigemId.invalid) {
+              <small id="erro-origem" class="erro-campo">Informe um ID de conta válido.</small>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="destino">ID da conta de destino</label>
+            <input
+              id="destino"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              autocomplete="off"
+              formControlName="contaDestinoId"
+              placeholder="Ex.: 2"
+              [attr.aria-invalid]="form.controls.contaDestinoId.touched && form.controls.contaDestinoId.invalid"
+              aria-describedby="ajuda-destino erro-destino"
+            />
+            <small id="ajuda-destino" class="ajuda-campo">A conta precisa estar cadastrada no banco.</small>
+            @if (form.controls.contaDestinoId.touched && form.controls.contaDestinoId.invalid) {
+              <small id="erro-destino" class="erro-campo">Informe um ID de conta válido.</small>
+            }
+            @if (form.hasError('mesmaConta') && form.touched) {
+              <small class="erro-campo">Origem e destino precisam ser contas diferentes.</small>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="valor">Valor da transferência</label>
+            <input
+              id="valor"
+              brlMask
+              inputmode="numeric"
+              autocomplete="off"
+              formControlName="valor"
+              placeholder="R$ 0,00"
+              aria-describedby="ajuda-valor erro-valor"
+            />
+            <small id="ajuda-valor" class="ajuda-campo">Valor mínimo de R$ 0,01.</small>
+            @if (form.controls.valor.touched && form.controls.valor.invalid) {
+              <small id="erro-valor" class="erro-campo">Informe um valor maior que zero.</small>
+            }
+          </div>
+
+          @if (erro()) {
+            <div class="alerta" role="alert" aria-live="assertive">
+              <span class="alerta-icone" aria-hidden="true">!</span>
+              <span>{{ erro() }}</span>
+            </div>
+          }
+
+          <button type="submit" [disabled]="form.invalid || enviando()">
+            @if (enviando()) {
+              <span class="indicador-carregamento" aria-hidden="true"></span>
+              Enviando transferência...
+            } @else {
+              Revisar e transferir
+              <span aria-hidden="true">→</span>
+            }
+          </button>
+          <p class="nota-seguranca"><span aria-hidden="true">⌑</span> A transferência só é concluída após validação pelo banco.</p>
+        </form>
+      </section>
+
+      <aside class="painel-ajuda" aria-labelledby="titulo-ajuda">
+        <div class="selo-ajuda" aria-hidden="true">i</div>
+        <h2 id="titulo-ajuda">Antes de transferir</h2>
+        <p>Para evitar erros, confira estes pontos:</p>
+        <ul>
+          <li><span aria-hidden="true">✓</span><span>As duas contas devem estar cadastradas e ativas.</span></li>
+          <li><span aria-hidden="true">✓</span><span>Use os IDs internos das contas — não o número da conta.</span></li>
+          <li><span aria-hidden="true">✓</span><span>O saldo e a transferência são validados pelo banco.</span></li>
+        </ul>
+        <div class="aviso-ajuda">
+          <strong>Não sabe o ID da conta?</strong>
+          <span>Consulte o cadastro da conta antes de enviar. Esta tela não consulta contas automaticamente.</span>
+        </div>
+      </aside>
+    </div>
+
+    @if (comprovante(); as c) {
+      <section class="cartao comprovante" aria-live="polite" aria-labelledby="titulo-comprovante">
+        <div class="comprovante-cabecalho">
+          <span class="sucesso-icone" aria-hidden="true">✓</span>
+          <div>
+            <h2 id="titulo-comprovante">Transferência realizada</h2>
+            <p>Seu comprovante está disponível abaixo.</p>
+          </div>
+        </div>
+        <dl>
+          <div><dt>Transação</dt><dd>#{{ c.transacaoId }}</dd></div>
+          <div><dt>Origem</dt><dd>Conta {{ c.contaOrigemId }}</dd></div>
+          <div><dt>Destinatário</dt><dd>{{ c.beneficiarioNome }}</dd></div>
+          <div><dt>Conta de destino</dt><dd>{{ c.numeroContaDestino }} · ID {{ c.contaDestinoId }}</dd></div>
+          <div><dt>Valor</dt><dd>{{ c.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</dd></div>
+          <div><dt>Status</dt><dd>{{ c.status }}</dd></div>
+          <div><dt>Data e hora</dt><dd>{{ c.dataHora | date:'dd/MM/yyyy HH:mm:ss' }}</dd></div>
+        </dl>
+      </section>
+    }
+    }
+  </main>
+
+  <footer class="rodape">Banco Digital <span>·</span> Operações sujeitas à validação bancária</footer>
+</div>
